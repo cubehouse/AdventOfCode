@@ -1,4 +1,4 @@
-import Screen from '../screen.js';
+import Screen from '../lib/screen.js';
 
 // create new screen object
 const S = new Screen();
