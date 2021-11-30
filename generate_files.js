@@ -8,7 +8,7 @@ const year = 2021;
 async function generate_file(day) {
     const entryFileName = pathJoin(__dirname, day.toString().padStart(2, '0') + '.js');
     if (await fsExists(entryFileName)) return;
-    await fs.writeFile(entryFileName, `import { Advent as AdventLib } from './advent.js';
+    await fs.writeFile(entryFileName, `import { Advent as AdventLib } from './lib/advent.js';
 const Advent = new AdventLib(${day}, ${year});
 
 async function Run() {

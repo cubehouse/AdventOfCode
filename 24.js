@@ -1,4 +1,4 @@
-import { Advent as AdventLib } from './advent.js';
+import { Advent as AdventLib } from './lib/advent.js';
 const Advent = new AdventLib(24, 2021);
 
 async function Run() {
