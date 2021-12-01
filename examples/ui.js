@@ -177,14 +177,11 @@ const solveMaze = async () => {
 }
 
 const run = async () => {
-    // while(true) {
-    await plotTravellingCos();
-    await buildMaze();
-    await solveMaze();
-    S.Stop();
-    // }
-
-    console.log('Closed');
+    while (true) {
+        await plotTravellingCos();
+        await buildMaze();
+        await solveMaze();
+    }
 };
 
 run();
