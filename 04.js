@@ -31,6 +31,8 @@ class Bingo {
     }
 
     MarkNumber(number) {
+        if (this.complete) return;
+        
         this.numbersCalled.push(number);
 
         for (let i = 0; i < this.board.length; i++) {
@@ -55,7 +57,7 @@ class Bingo {
         return false;
     }
 
-    ScoreBoardPart1() {
+    ScoreBoard() {
         let score = 0;
         for (let i = 0; i < this.board.length; i++) {
             for (let j = 0; j < this.board.length; j++) {
@@ -115,8 +117,33 @@ async function Run() {
         // MarkNumber returns true when a card completes
         return cards.find(card => card.MarkNumber(x));
     });
-    await Advent.Submit(cards.find((x) => x.complete).ScoreBoardPart1());
+    await Advent.Submit(cards.find((x) => x.complete).ScoreBoard());
 
-    // await Advent.Submit(null, 2);
+    // part 2
+
+    // reset all cards
+    cards.forEach(card => card.Reset());
+
+    // play until we have 1 remaining incomplete card (reduce counts the number of incomplete cards)
+    let numIdx = 0;
+    while(cards.reduce((acc, cur) => acc + (!cur.complete ? 1 : 0), 0) > 1) {
+        // mark all cards with the next number
+        cards.forEach(card => card.MarkNumber(nums[numIdx]));
+        numIdx++;
+    }
+
+    const remainingCard = cards.filter(card => !card.complete);
+    // sanity check in case multiple cards are completed in our last step (meaning multiple cards would be a solution??)
+    if (remainingCard.length !== 1) {
+        throw new Error('Failed to get one remaining card ' + remainingCard);
+    }
+    
+    // we have the last card, finish completing it so we can score it
+    while(!remainingCard[0].complete) {
+        remainingCard[0].MarkNumber(nums[numIdx]);
+        numIdx++;
+    }
+
+    await Advent.Submit(remainingCard[0].ScoreBoard(), 2);
 }
 Run();
