@@ -3,34 +3,36 @@ const Advent = new AdventLib(6, 2021);
 
 async function Run() {
     const input = await Advent.GetInput();
-    const input2 = [`3,4,3,1,2`];
+    const input2 = `3,4,3,1,2`;
 
     const fishes = input.split(',').map(x => parseInt(x));
 
     const processFish = (fishes, cycleLength, initialOffset, days) => {
-        const fish = [];
-        // mess with our intial fish values so we can calculate the number of births
-        fishes.forEach(f => {
-            fish.push(f - cycleLength);
+        // build array of cycleLength + initialOffset which we will shift along to add up
+        const fish = new Array(cycleLength + initialOffset).fill(0);
+
+        // add initial fish
+        fishes.forEach((f) => {
+            fish[f]++;
         });
 
-        let current = 0;
-        while(current < fish.length) {
-            // do some MATH to figure out how many fish each fish will birth
-            const fishCycles = Math.floor((days - 1 - fish[current]) / cycleLength);
-            for(let i=0; i<fishCycles; i++) {
-                // then add each fish with a value that tells us how many fish they will birth too
-                const newFishVal = fish[current] + (i + 1) * cycleLength + initialOffset;
-                fish.push(newFishVal);
-            }
-            current++;
+        for(let day=0; day<days; day++) {
+            // how many fish are we adding today? (remove from start of array)
+            const newFish = fish.shift();
+            // add our brand new fish at the end (which will now be at cycleLength + initialOffset days away)
+            fish.push(newFish);
+            // inject today's new fish (which will create even more fish) cycleLength days away
+            fish[cycleLength - 1] += newFish;
         }
-        return fish.length;
+
+        // reduce to count up all our fish
+        return fish.reduce((a, b) => a + b, 0);
     };
 
     const ans1 = processFish(fishes, 7, 2, 80);
     await Advent.Submit(ans1);
 
-    // await Advent.Submit(null, 2);
+    const ans2 = processFish(fishes, 7, 2, 256);
+    await Advent.Submit(ans2, 2);
 }
 Run();
