@@ -1,7 +1,7 @@
 import { Advent as AdventLib } from './lib/advent.js';
 const Advent = new AdventLib(9, 2021);
 
-import { Screen } from './lib/screen.js';
+import Window from './lib/window.js';
 
 async function Run() {
     const input = await Advent.GetInput();
@@ -10,8 +10,6 @@ async function Run() {
 9856789892
 8767896789
 9899965678`.split('\n');
-
-    const S = new Screen({ logWidth: 25 });
 
     const map = input.map((line) => {
         return line.split('').map((c) => Number(c));
@@ -49,38 +47,40 @@ async function Run() {
 
     // part 2
 
+    const W = new Window({ width: map[0].length, height: map.length, title: 'Advent of Code 2021 - Day 9' });
+
+    W.loop();
+
     // dump input into a 2d grid
-    S.Set(0, 0, input.join('\n'));
+    const cellTypes = new Array(10).fill(0).map((_, idx) => idx).reduce((acc, num) => {
+        acc[`${num}`] = {
+            ...Window.colourLerp(Window.green, Window.red, num / 13),
+            height: num,
+        };
+        return acc;
+    }, {});
+    W.applyASCIIMap(0, 0, input, cellTypes);
 
-    // parse height from each cell and store in cell as 'height'
-    S.ForEachCell((x) => {
-        S.SetKey(x.x, x.y, 'height', Number(x.val));
-    });
-
-    // some flavour to the visual map
-    S.AddStyle(/(X)/, '{green-fg}');
-    S.AddStyle(/(\.)/, '{green-fg}');
-    lowPoints.forEach((point) => {
-        S.Set(point.col, point.row, `X`);
-    });
-
-    let maxY = 0;
+    for (const lowPoint of lowPoints) {
+        W.setPixel(lowPoint.col, lowPoint.row, Window.blue);
+        await new Promise((resolve) => setTimeout(resolve, 1));
+    }
 
     // flood fill each lowest point from part 1
+    const speed = 5;
+    let animCounter = 0;
     for (const point of lowPoints) {
         let count = 0;
-        await S.FloodFill(point.col, point.row, (x) => {
-            return x?.height !== undefined && x?.height < 9;
-        }, (x) => {
-            S.Set(x.x, x.y, '.');
-
-            // shift screen view to fit in the new areas of the map
-            if (x.y > maxY) {
-                maxY = x.y;
-                S.FitPositionOntoScreen(x.x, x.y);
-            }
-
+        await W.floodFill(point.col, point.row, (cell) => {
+            return cell.height !== undefined && cell.height < 9;
+        }, async (cell) => {
             count++;
+            if (W.setPixel(cell.x, cell.y, Window.blue)) {
+                animCounter++;
+                if (animCounter % speed === 0) {
+                    await new Promise((resolve) => setTimeout(resolve, 1));
+                }
+            }
         });
         // total up the area of each lowest point
         point.area = count;
@@ -97,7 +97,5 @@ async function Run() {
     }, 1);
 
     await Advent.Submit(totalArea, 2);
-
-    S.Draw();
 }
 Run();
