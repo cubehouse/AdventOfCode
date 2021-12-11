@@ -1,3 +1,9 @@
+//
+// !!! FLASHING LIGHTS WARNING !!!
+//  visualisation is basically a small game of life that will flash repeatedly,
+//  often taking up large portions of the screen
+//
+
 import { Advent as AdventLib } from './lib/advent.js';
 const Advent = new AdventLib(11, 2021);
 
@@ -36,12 +42,12 @@ async function Run() {
 
     const valueColours = new Array(10).fill(0).reduce((acc, _, i) => {
         acc[i] = {
-            ...Window.colourLerp(Window.black, Window.grey, i / 9),
+            ...Window.colourLerp(Window.black, Window.grey, 1 - (i / 9)),
             energy: i,
         };
         return acc;
     }, {});
-    valueColours[10] = Window.blue;
+    valueColours[10] = Window.pink;
 
     // adds energy, returns true if we highlight
     const addEnergy = async (x, y, energyToAdd = 1, animate = false) => {
@@ -76,17 +82,18 @@ async function Run() {
         [1, 1],
     ];
 
-    const speed = 1;
+    const speed = 5;
     // DISABLE to speed up computation
     const animate = true;
     const step = async () => {
         const todo = []; // list of cells to spread highlight energy from
         // increment all our octupusies
         await W.forEach(async (cell, x, y) => {
-            if (await addEnergy(x, y, 1, animate)) {
+            if (await addEnergy(x, y, 1, false)) {
                 todo.push([x, y]);
             }
         });
+        if (animate) await new Promise(resolve => setTimeout(() => resolve(), speed));
 
         // increase neighbours of all flashed cells
         while (todo.length > 0) {
@@ -95,10 +102,11 @@ async function Run() {
             for (const n of neighbours) {
                 const nx = x + n[0];
                 const ny = y + n[1];
-                if ((await addEnergy(nx, ny, 1, animate)) === true) {
+                if ((await addEnergy(nx, ny, 1, false)) === true) {
                     todo.push([nx, ny]);
                 }
             }
+            if (animate) await new Promise(resolve => setTimeout(() => resolve(), speed));
         }
 
         // find all octopus that have an energy level of 9
