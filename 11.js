@@ -48,7 +48,7 @@ async function Run() {
         if (x < 0 || x >= gridW || y < 0 || y >= gridH) {
             return false;
         }
-        
+
         const energy = W.getKey(x, y, 'energy');
         if (energy > 9) return false;
 
@@ -77,23 +77,25 @@ async function Run() {
     ];
 
     const speed = 1;
+    // DISABLE to speed up computation
+    const animate = true;
     const step = async () => {
         const todo = []; // list of cells to spread highlight energy from
         // increment all our octupusies
         await W.forEach(async (cell, x, y) => {
-            if (await addEnergy(x, y, 1, false)) {
+            if (await addEnergy(x, y, 1, animate)) {
                 todo.push([x, y]);
             }
         });
 
         // increase neighbours of all flashed cells
         while (todo.length > 0) {
-            const [x, y] = todo.pop();
+            const [x, y] = todo.shift();
             // add energy for each neighbour
             for (const n of neighbours) {
                 const nx = x + n[0];
                 const ny = y + n[1];
-                if ((await addEnergy(nx, ny, 1, false)) === true) {
+                if ((await addEnergy(nx, ny, 1, animate)) === true) {
                     todo.push([nx, ny]);
                 }
             }
@@ -105,9 +107,10 @@ async function Run() {
             if (cell.energy > 9) {
                 highlightedOctopusses++;
                 W.setKey(x, y, 'energy', 0);
-                await new Promise(resolve => setTimeout(() => resolve(), 1));
             }
         });
+
+        await new Promise(resolve => setTimeout(() => resolve(), 1));
 
         return highlightedOctopusses;
     };
@@ -129,11 +132,19 @@ async function Run() {
     }
 
     let totalFlashes = 0;
-    for (let i = 0; i < 100; i++) {
-        totalFlashes += await step();
-    }
+    for (let i = 0; i < 500; i++) {
+        const newFlashes = await step();
+        if (newFlashes === gridW * gridH) {
+            await Advent.Submit(i + 1, 2);
+            return;
+        }
+        if (i < 100) {
+            totalFlashes += newFlashes;
+        }
 
-    await Advent.Submit(totalFlashes);
-    // await Advent.Submit(null, 2);
+        if (i === 100) {
+            await Advent.Submit(totalFlashes);
+        }
+    }
 }
 Run();
