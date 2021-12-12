@@ -140,7 +140,8 @@ async function Run() {
     }
 
     let totalFlashes = 0;
-    for (let i = 0; i < 500; i++) {
+    let i = 0;
+    while(true) {
         const newFlashes = await step();
         if (newFlashes === gridW * gridH) {
             await Advent.Submit(i + 1, 2);
@@ -153,6 +154,7 @@ async function Run() {
         if (i === 100) {
             await Advent.Submit(totalFlashes);
         }
+        i++;
     }
 }
 Run();
