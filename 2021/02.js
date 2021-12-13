@@ -1,7 +1,7 @@
-import { Advent as AdventLib } from './lib/advent.js';
+import { Advent as AdventLib } from '../lib/advent.js';
 const Advent = new AdventLib(2, 2021);
 
-import { OpMachine } from './lib/opmachine.js';
+import { OpMachine } from '../lib/opmachine.js';
 
 async function Run() {
     const input = await Advent.GetInput();

@@ -1,5 +1,5 @@
-import { Advent as AdventLib } from './lib/advent.js';
-const Advent = new AdventLib(18, 2021);
+import { Advent as AdventLib } from '../lib/advent.js';
+const Advent = new AdventLib(20, 2021);
 
 async function Run() {
     const input = await Advent.GetInput();

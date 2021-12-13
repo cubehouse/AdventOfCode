@@ -4,10 +4,10 @@
 //  often taking up large portions of the screen
 //
 
-import { Advent as AdventLib } from './lib/advent.js';
+import { Advent as AdventLib } from '../lib/advent.js';
 const Advent = new AdventLib(11, 2021);
 
-import Window from './lib/window.js';
+import Window from '../lib/window.js';
 
 async function Run() {
     const input = await Advent.GetInput();
