@@ -120,6 +120,16 @@ fold along x=5`.split(/\n/);
                 dots.splice(i, 1);
             }
         });
+
+        // zoom in if our fold means we can fit inside our existing window
+        const xSize = Math.round(W.width / (Math.max(...dots.map(x => x.x)) + 1));
+        const ySize = Math.round(W.height / (Math.max(...dots.map(x => x.y)) + 1));
+        const newPixelSize = Math.min(xSize, ySize);
+        if (newPixelSize != W.pixelSize) {
+            W.pixelSize = newPixelSize;
+            W.resetPixels();
+            drawDots();
+        }
     }
 
     // remove first fold from array, so we can loop over the rest in part 2
