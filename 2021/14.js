@@ -22,34 +22,75 @@ BC -> B
 CC -> N
 CN -> C`.split(/\n/);
 
-    const sequence = input[0].split('');
+    // build mapping of all replacements possible
     const map = input.slice(2).map((x) => {
         return x.split(' -> ');
+    }).reduce((acc, x) => {
+        acc[x[0]] = [
+            `${x[0][0]}${x[1]}`,
+            `${x[1]}${x[0][1]}`,
+        ];
+        return acc;
+    }, {});
+
+    // track symbol pair occurences
+    const symbols = Object.values(map).reduce((acc, x) => {
+        acc[x[0]] = 0;
+        acc[x[1]] = 0;
+        return acc;
+    }, {});
+    Object.keys(map).forEach((x) => {
+        symbols[x] = 0;
     });
 
-    const step = () => {
-        for (let i = 1; i < sequence.length; i++) {
-            const pair = `${sequence[i - 1]}${sequence[i]}`;
-            const match = map.find((x) => x[0] === pair);
-            if (match) {
-                sequence.splice(i, 0, match[1]);
-            } else {
-                throw new Error(`No match for ${pair}`);
-            }
-            i++;
-        }
-    };
+    // initial symbol set from our initial sequence
+    const seq = input[0].split('');
+    for (let i = 1; i < seq.length; i++) {
+        const x = `${seq[i - 1]}${seq[i]}`;
+        symbols[x]++;
+    }
 
+    // separately count each symbol added for the answer
+    const count = Object.keys(symbols).reduce((acc, x) => {
+        acc[x[0]] = 0;
+        acc[x[1]] = 0;
+        return acc;
+    }, {});
+    seq.forEach((x) => {
+        count[x]++;
+    });
+
+    // step function
+    const step = () => {
+        const newSym = Object.keys(symbols).reduce((acc, x) => {
+            const mapping = map[x];
+            mapping.forEach((y) => {
+                acc[y] = (acc[y] || 0) + (symbols[x] || 0);
+            });
+            count[mapping[0][1]] += symbols[x] || 0;
+            return acc;
+        }, {});
+        
+        // update symbol object
+        Object.keys(symbols).forEach((x) => {
+            symbols[x] = newSym[x] === undefined ? 0 : newSym[x];
+        });
+    };
+    
     for (let i = 0; i < 10; i++) {
         step();
     }
-    const charCount = sequence.reduce((acc, x) => {
-        acc[x] = (acc[x] || 0) + 1;
-        return acc;
-    }, {});
-    const ans1 = Math.max(...Object.values(charCount)) - Math.min(...Object.values(charCount));
+    const ans1 = Math.max(...Object.values(count)) - Math.min(...Object.values(count));
 
     await Advent.Submit(ans1);
-    // await Advent.Submit(null, 2);
+
+    // part 2
+    //  OH. it's lanternfish again! Optimising........
+
+    for (let i = 0; i < 30; i++) {
+        step();
+    }
+    const ans2 = Math.max(...Object.values(count)) - Math.min(...Object.values(count));
+    await Advent.Submit(ans2, 2);
 }
 Run();
