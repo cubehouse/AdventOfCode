@@ -11,8 +11,11 @@ async function generate_file(day, year = 2021) {
         await fs.mkdir(pathJoin(__dirname, year.toString()));
     } catch(e) {}
     if (await fsExists(entryFileName)) return;
-    await fs.writeFile(entryFileName, `import { Advent as AdventLib } from './lib/advent.js';
+    await fs.writeFile(entryFileName, `import { Advent as AdventLib } from '../lib/advent.js';
 const Advent = new AdventLib(${day}, ${year});
+
+// UI library
+// import Window from '../lib/window.js';
 
 async function Run() {
     const input = await Advent.GetInput();
