@@ -63,6 +63,41 @@ class PC {
         return val;
     }
 
+    // sum
+    opCode0(...args) {
+        return args.reduce((acc, val) => acc + val, 0);
+    }
+
+    // product
+    opCode1(...args) {
+        return args.reduce((acc, val) => acc * val, 1);
+    }
+
+    // minimum
+    opCode2(...args) {
+        return Math.min(...args);
+    }
+
+    // maximum
+    opCode3(...args) {
+        return Math.max(...args);
+    }
+
+    // greater than
+    opCode5(a, b) {
+        return a > b ? 1 : 0;
+    }
+
+    // less than
+    opCode6(a, b) {
+        return a < b ? 1 : 0;
+    }
+
+    // equal
+    opCode7(a, b) {
+        return a === b ? 1 : 0;
+    }
+
     parse() {
         if (this.debug) {
             this.log('parse', this.pc, this.prog.slice(this.pc).join(''));
@@ -78,14 +113,16 @@ class PC {
         if (id === 4) {
             const val = this.readLiteralValue();
             this.outputs.push(val);
+            return val;
         } else {
             const lengthTypeID = this.read(1);
+            const vals = [];
             if (lengthTypeID === 0) {
                 const subpacketlength = this.read(15);
                 const endPC = this.pc + subpacketlength;
                 while (this.pc < endPC) {
                     this.depth++;
-                    this.parse();
+                    vals.push(this.parse());
                     this.depth--;
                 }
             } else {
@@ -95,10 +132,25 @@ class PC {
                         this.log('subpacket', i);
                     }
                     this.depth++;
-                    this.parse();
+                    vals.push(this.parse());
                     this.depth--;
                 }
             }
+
+            // process values based on opcode
+            if (this.debug) {
+                this.log('opcode', id, 'vals', vals);
+            }
+            const fnName = `opCode${id}`;
+            if (!this[fnName]) {
+                console.log('unknown opcode', id);
+                return;
+            }
+            const val = this[fnName](...vals);
+            if (this.debug) {
+                this.log('result', val);
+            }
+            return val;
         }
     }
 }
@@ -128,6 +180,25 @@ async function Test() {
     if (pc3.outputs.length !== 3 || pc3.outputs[0] !== 1 || pc3.outputs[1] !== 2 || pc3.outputs[2] !== 3) {
         throw new Error('test 3 failed');
     }
+
+    // part 2 tests
+    const testPC = (prog, expResult, debug = false) => {
+        const testPC = new PC(prog, {
+            debug,
+        });
+        if (testPC.parse() !== expResult) {
+            throw new Error('test failed');
+        }
+    };
+
+    testPC('C200B40A82', 3);
+    testPC('04005AC33890', 54);
+    testPC('880086C3E88112', 7);
+    testPC('CE00C43D881120', 9);
+    testPC('D8005AC2A8F0', 1);
+    testPC('F600BC2D8F', 0);
+    testPC('9C005AC2F8F0', 0);
+    testPC('9C0141080250320F1802104A08', 1);
 }
 
 async function Run() {
@@ -142,6 +213,10 @@ async function Run() {
     const ans1 = ans1pc.versions.reduce((acc, v) => acc + v, 0);
     await Advent.Submit(ans1);
 
-    // await Advent.Submit(null, 2);
+
+    // part 2
+    const ans2pc = new PC(input);
+    const ans2 = ans2pc.parse();
+    await Advent.Submit(ans2, 2);
 }
 Run();
