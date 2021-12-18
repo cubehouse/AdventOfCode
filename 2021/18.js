@@ -233,15 +233,36 @@ async function Run() {
     let tree = run(input);
 
     // reduce tree down
-    let part1Tree = JSON.parse(JSON.stringify(tree));
-    while (isNaN(part1Tree)) {
-        const pairs = findPairs(part1Tree);
-        for (const pair of pairs) {
-            part1Tree = setValUsingPath(part1Tree, pair.path, pair.val[0] * 3 + pair.val[1] * 2);
+    const calculateMagnitude = (tree) => {
+        let tempTree = JSON.parse(JSON.stringify(tree));
+        while (isNaN(tempTree)) {
+            const pairs = findPairs(tempTree);
+            for (const pair of pairs) {
+                tempTree = setValUsingPath(tempTree, pair.path, pair.val[0] * 3 + pair.val[1] * 2);
+            }
+        }
+        return tempTree;
+    };
+    const ans1 = calculateMagnitude(tree);
+    await Advent.Submit(ans1);
+
+    // part 2
+
+    // ... there must be a smarter way of doing this...
+    let largestMagnitude = 0;
+    for (let x = 0; x < input.length; x++) {
+        for (let y = 0; y < input.length; y++) {
+            if (x === y) {
+                continue;
+            }
+            const tree = run([input[x], input[y]]);
+            const mag = calculateMagnitude(tree);
+            if (mag > largestMagnitude) {
+                largestMagnitude = mag;
+            }
         }
     }
 
-    await Advent.Submit(part1Tree);
-    // await Advent.Submit(null, 2);
+    await Advent.Submit(largestMagnitude, 2);
 }
 Run();
