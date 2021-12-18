@@ -1,7 +1,21 @@
-# Advent Of Code 2021
+# Advent Of Code
 
-My Advent of Code 2021 solutions.
+My Advent of Code Solutions.
 
-These are largely written in JavaScript NodeJS. Occasionally C++, maybe even some Python or Go, we'll see how December goes.
+I have built a framework that automates downloading inputs, but also submitting the answers.
 
-I am on UK time, so have zero chance of ever getting a score, and will likely be posting at least 5-6 hours after each puzzle is available.
+## Setup
+
+Create file `.env`, adding in your AdventOfCode session token.
+
+Example format is available in .env.sample
+
+## Usage
+
+Run day scripts using `node 2021/01.js` (for example).
+
+Your unique puzzle input will be automatically downloaded.
+
+To submit an answer, run `node 2021/01.js --submit`. Without this, the answer will be generated, but not submitted to AoC.
+
+To generate a year's solution files from template, run `node generate_files.js [YEAR]`
