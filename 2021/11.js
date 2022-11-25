@@ -82,7 +82,7 @@ async function Run() {
         [1, 1],
     ];
 
-    const speed = 5;
+    const speed = 1;
     // DISABLE to speed up computation
     const animate = true;
     const step = async () => {
