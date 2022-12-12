@@ -28,6 +28,17 @@ Run();
     console.log(`Written solution file ${day}: ${entryFileName}`);
 }
 
+async function generateSampleInput(day, year = 2021) {
+    // generate sample input file
+    const inputFileName = pathJoin(__dirname, 'inputs', year.toString(), day.toString().padStart(2, '0') + '-sample.txt');
+    try {
+        await fs.mkdir(pathJoin(__dirname, 'inputs', year.toString()));
+    }
+    catch(e) {}
+    if (await fsExists(inputFileName)) return;
+    await fs.writeFile(inputFileName, '');
+}
+
 const run = async () => {
     const inputsDir = pathJoin(__dirname, 'inputs');
     if (!await fsExists(inputsDir)) {
@@ -39,6 +50,7 @@ const run = async () => {
 
     for (let i = 1; i <= 25; i++) {
         generate_file(i, year);
+        generateSampleInput(i, year);
     }
 };
 run();
