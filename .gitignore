@@ -6,3 +6,5 @@ c++/Debug
 c++/Release
 .vscode
 imgui.ini
+frames/
+output.mp4

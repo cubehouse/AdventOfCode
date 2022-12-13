@@ -141,6 +141,7 @@ async function Run() {
         i++;
     }
     const steps = route.length - 1; // don't count start
+    await W.stop();
 
     await Advent.Submit(steps);
 
@@ -165,6 +166,5 @@ async function Run() {
     const shortestPath = Math.min(...routes);
 
     await Advent.Submit(shortestPath, 2);
-    W.stop();
 }
 Run();
