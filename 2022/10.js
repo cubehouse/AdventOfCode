@@ -113,6 +113,7 @@ async function Run() {
     while (!PC1.isHalted) {
         await PC1.tick();
     }
+    await W.stop();
     // read the input and submit manually!
     // await Advent.Submit(null, 2);
 }

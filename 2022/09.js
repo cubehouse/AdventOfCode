@@ -4,8 +4,8 @@ const Advent = new AdventLib(9, 2022);
 // UI library
 import Window from '../lib/window.js';
 
-const part1AnimSpeed = 10;
-const part2AnimSpeed = 100;
+const part1AnimSpeed = 1;
+const part2AnimSpeed = 1;
 
 class Node {
     constructor({
@@ -264,6 +264,8 @@ async function Run() {
         }
         return count;
     }, 0);
+
+    await W.stop();
 
     await Advent.Submit(visitedSpaces2, 2);
 }

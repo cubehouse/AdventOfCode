@@ -101,5 +101,7 @@ async function Run() {
         return acc;
     }, 0);
     await Advent.Submit(bestSpot, 2);
+
+    await W.stop();
 }
 Run();
