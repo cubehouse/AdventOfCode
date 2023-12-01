@@ -7,7 +7,21 @@ const Advent = new AdventLib(1, 2023);
 async function Run() {
     const input = await Advent.GetInput();
 
-    // await Advent.Submit(null);
+    const digits = input.map((x) => {
+        // remove all non-digit characters
+        return x.replace(/\D/g, '').split('').map((y) => parseInt(y));
+    });
+
+    const nums = digits.map((x) => {
+        // combine first and last digit and convert to number
+        return parseInt(x[0] + '' + x[x.length - 1]);
+    });
+
+    const ans1 = nums.reduce((a, b) => a + b);
+
+    await Advent.Submit(ans1);
+
+
     // await Advent.Submit(null, 2);
 }
 Run();
