@@ -53,6 +53,28 @@ async function Run() {
     }, 0);
     await Advent.Submit(ans1);
 
-    // await Advent.Submit(null, 2);
+    games.forEach((game) => {
+        // find the maximum number of each colour across all rounds
+        game.maxes = {
+            red: 0,
+            green: 0,
+            blue: 0,
+        };
+        game.rounds.forEach((round) => {
+            Object.keys(round).forEach((colour) => {
+                if (round[colour] > game.maxes[colour]) {
+                    game.maxes[colour] = round[colour];
+                }
+            });
+        });
+
+        game.power = game.maxes.red * game.maxes.green * game.maxes.blue;
+    });
+
+    const ans2 = games.reduce((p, x) => {
+        return p + x.power;
+    }, 0);
+
+    await Advent.Submit(ans2, 2);
 }
 Run();
