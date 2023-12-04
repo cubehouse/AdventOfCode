@@ -16,6 +16,15 @@ class Card {
         this.id = parseInt(matches[1]);
         this.winningNumbers = matches[2].split(' ').map(x => parseInt(x));
         this.entry = matches[3].split(' ').map(x => parseInt(x));
+
+        this.copies = 1;
+
+        this.matches = 0;
+        for(let i=0; i < this.winningNumbers.length; i++) {
+            if (this.entry.indexOf(this.winningNumbers[i]) !== -1) {
+                this.matches++;
+            }
+        }
     }
 
     ScorePart1() {
@@ -46,6 +55,21 @@ async function Run() {
     }, 0);
 
     await Advent.Submit(ans1);
-    // await Advent.Submit(null, 2);
+
+    cards.forEach((card, idx) => {
+        const matches = card.matches;
+        for(let i=0; i<matches; i++) {
+            const cardCloneIndex = idx + i + 1;
+            if (cardCloneIndex >= cards.length) {
+                break;
+            }
+            cards[cardCloneIndex].copies += card.copies;
+        }
+    });
+    const ans2 = cards.reduce((acc, card) => {
+        return acc + card.copies;
+    }, 0);
+
+    await Advent.Submit(ans2, 2);
 }
 Run();
