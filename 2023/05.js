@@ -64,23 +64,45 @@ async function Run() {
     }
 
     // unit tests against sample input
-    Advent.Assert(maps[0].Map(79) == 81);
-    Advent.Assert(maps[0].Map(14) == 14);
-    Advent.Assert(maps[0].Map(55) == 57);
-    Advent.Assert(maps[0].Map(13) == 13);
+    Advent.Assert(maps[0].Map(79), 81);
+    Advent.Assert(maps[0].Map(14), 14);
+    Advent.Assert(maps[0].Map(55), 57);
+    Advent.Assert(maps[0].Map(13), 13);
 
     seeds.forEach((seed) => {
         maps.forEach((mapping) => {
             seed[mapping.to] = mapping.Map(seed[mapping.from]);
         });
     });
-    Advent.Assert(seeds[0].location == 82);
-    Advent.Assert(seeds[1].location == 43);
-    Advent.Assert(seeds[2].location == 86);
-    Advent.Assert(seeds[3].location == 35);
+    Advent.Assert(seeds[0].location, 82);
+    Advent.Assert(seeds[1].location, 43);
+    Advent.Assert(seeds[2].location, 86);
+    Advent.Assert(seeds[3].location, 35);
     
     const ans1 = Math.min(...seeds.map(x => x.location));
     await Advent.Submit(ans1);
-    // await Advent.Submit(null, 2);
+
+    // brute force solution for part 2
+    //  not proud, but this runs faster than I could write a better solution =)
+    const seeds2Input = input[0].substring(7).split(' ').map(x => parseInt(x));
+    let bestSeedLocation = 1000000000;
+    for (var i = 0; i < seeds2Input.length; i+=2) {
+        const start = seeds2Input[i];
+        const end = seeds2Input[i] + seeds2Input[i+1] - 1;
+        for(var j = start; j <= end; j++) {
+            const seed = {
+                seed: j,
+            };
+            maps.forEach((mapping) => {
+                seed[mapping.to] = mapping.Map(seed[mapping.from]);
+            });
+            if (seed.location < bestSeedLocation) {
+                bestSeedLocation = seed.location;
+            }
+        }
+    }
+    const ans2 = bestSeedLocation;
+    Advent.Assert(ans2, 46);
+    await Advent.Submit(ans2, 2);
 }
 Run();
