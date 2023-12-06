@@ -61,6 +61,13 @@ async function Run() {
     }).reduce((p, x) => p * x, 1);
 
     await Advent.Submit(ans1);
-    // await Advent.Submit(null, 2);
+
+    // == Part 2 ==
+    const race2 = new Race(
+        parseInt(input[0].substring(6).replace(/[^\d]+/g, '')),
+        parseInt(input[1].substring(9).replace(/[^\d]+/g, ''))
+    );
+    const ans2 = race2.Part1().length;
+    await Advent.Submit(ans2, 2);
 }
 Run();
