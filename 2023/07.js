@@ -32,6 +32,11 @@ class Hand {
             }
             this.groups[card]++;
         });
+
+        const jokers = this.groups[1] || 0;
+        if (jokers > 0) {
+            delete this.groups[1]; // ignore jokers for now
+        }
         
         this.groupSizes = {
             5: 0,
@@ -44,21 +49,12 @@ class Hand {
             this.groupSizes[group]++;
         });
 
-        this.handValue = 0;
-        if (this.groupSizes[5] === 1) {
-            this.handValue = 7; // 5 of a kind
-        } else if (this.groupSizes[4] === 1) {
-            this.handValue = 6; // 4 of a kind
-        } else if (this.groupSizes[3] === 1 && this.groupSizes[2] === 1) {
-            this.handValue = 5; // full house
-        } else if (this.groupSizes[3] === 1) {
-            this.handValue = 4; // 3 of a kind
-        } else if (this.groupSizes[2] === 2) {
-            this.handValue = 3; // 2 pair
-        } else if (this.groupSizes[2] === 1) {
-            this.handValue = 2; // 1 pair
-        } else {
-            this.handValue = 1; // high card
+        const uniqueCards = Object.keys(this.groups).length;
+        const largestGroupOfCards = +Object.values(this.groups).sort().pop() + jokers;
+        this.handValue = (5 - uniqueCards) + largestGroupOfCards;
+        if (jokers === 5) {
+            // edgecase when you have 5 jokers
+            this.handValue = 9;
         }
 
         // generate a "high card value" that breaks ties
@@ -101,6 +97,18 @@ async function Run() {
     Advent.Assert(ans1, 6440);
 
     await Advent.Submit(ans1);
-    // await Advent.Submit(null, 2);
+
+    // == Part 2 ==
+    cardMap['J'] = 1;
+
+    // rebuild hands with new Joker value
+    const hands2 = input.map((line) => new Hand(line));
+    hands2.sort((a, b) => a.Compare(b));
+    const ans2 = hands2.reduce((acc, hand, idx) => {
+        return acc + (hand.bid * (idx + 1));
+    }, 0);
+
+    Advent.Assert(ans2, 5905);
+    await Advent.Submit(ans2, 2);
 }
 Run();
