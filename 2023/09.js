@@ -42,6 +42,17 @@ class Sequence {
             return acc + sequence[ sequence.length - 1 ];
         }, 0);
     }
+
+    GeneratePreviousValue() {
+        const vals = [0];
+        for (let i = 1; i < this.depth; i++) {
+            vals.push(
+                this.sequences[this.sequences.length - i - 1][0] - vals[vals.length - 1]
+            );
+        }
+
+        return this.numbers[0] - vals[vals.length - 1];
+    }
 }
 
 async function Run() {
@@ -59,7 +70,17 @@ async function Run() {
 
     await Advent.Submit(ans1);
 
+    //  === Part 2 ===
+    Advent.Assert(sequences[0].GeneratePreviousValue(), -3);
+    Advent.Assert(sequences[1].GeneratePreviousValue(), 0);
+    Advent.Assert(sequences[2].GeneratePreviousValue(), 5);
+
+    const ans2 = sequences.reduce((acc, sequence) => {
+        const prevNum = sequence.GeneratePreviousValue();
+        return acc + prevNum;
+    }, 0);
+    Advent.Assert(ans2, 2);
     
-    // await Advent.Submit(null, 2);
+    await Advent.Submit(ans2, 2);
 }
 Run();
