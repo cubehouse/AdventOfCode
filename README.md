@@ -26,6 +26,10 @@ To generate a year's solution files from template, run `node generate_files.js [
 
 Creates a window that can render pixels.
 
+Run with `--render` to automatically capture the window as a video.
+
+Copy ffmpeg.exe into bin/ to get video support.
+
 ```
 import Window from '../lib/window.js';
 
