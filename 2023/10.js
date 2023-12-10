@@ -28,7 +28,11 @@ async function Run() {
     const width = input[0].length;
     const height = input.length;
     
-    const W = new Window({ width: (width * 3) + 1, height: (height * 3) + 1 });
+    const W = new Window({
+        width: (width * 3) + 1,
+        height: (height * 3) + 1,
+        pixelSize: 1,
+    });
 
     let start = null;
 
@@ -52,6 +56,9 @@ async function Run() {
                 W.setKey(windowCoor[0], windowCoor[1], 'pipe', true);
                 W.setKey(windowCoor[0], windowCoor[1], 'wall', true);
                 W.setKey(windowCoor[0], windowCoor[1], 'pipeType', pipeSymbols[char]);
+            } else {
+                W.setKey(windowCoor[0], windowCoor[1], 'floor', true);
+                W.setPixel(windowCoor[0], windowCoor[1], Window.green);
             }
         });
     });
@@ -233,23 +240,6 @@ async function Run() {
         W.setKey(posCoor[0], posCoor[1], 'depth', moves.length);
         W.setPixel(posCoor[0], posCoor[1], Window.red);
 
-        // draw pixels between last move and this move
-        if (moves.length > 0) {
-            const lastMove = moves[moves.length - 1];
-            const lastMoveCoor = coorToWindow(lastMove.pos);
-            // fill in all pixels between lastMoveCoor and posCoor
-            const xDiff = posCoor[0] - lastMoveCoor[0];
-            const yDiff = posCoor[1] - lastMoveCoor[1];
-            const xDir = xDiff === 0 ? 0 : xDiff / Math.abs(xDiff);
-            const yDir = yDiff === 0 ? 0 : yDiff / Math.abs(yDiff);
-            for (let x = lastMoveCoor[0]; x !== posCoor[0]; x += xDir) {
-                W.setPixel(x, posCoor[1], Window.red);
-            }
-            for (let y = lastMoveCoor[1]; y !== posCoor[1]; y += yDir) {
-                W.setPixel(posCoor[0], y, Window.red);
-            }
-        }
-
         const connectedCells = getConnectedAdjacentCells(pos[0], pos[1]);
         connectedCells.forEach(([x, y]) => {
             queue.push({
@@ -260,10 +250,13 @@ async function Run() {
 
         // let the window animate (pause for one "step" every 100 iterations)
         animCounter++;
-        if (animCounter % 100 === 0) {
+        if (animCounter % 400 === 0)
+        {
             await new Promise(resolve => setTimeout(resolve, 1));
         }
     }
+
+    await new Promise(resolve => setTimeout(resolve, 1));
 
     // find max depth in the maze
     const ans1 = W.reduce((acc, cell) => {
@@ -272,6 +265,102 @@ async function Run() {
     }, 0);
 
     await Advent.Submit(ans1);
-    // await Advent.Submit(null, 2);
+    
+    let floodAnim = 0;
+    const floodAnimSpeed = 100;
+
+    // mark all cells that are part of the loop as isLoop
+    let loopStart = coorToWindow(start);
+    while(1) {
+        W.setKey(loopStart[0], loopStart[1], 'isLoop', true);
+        W.setPixel(loopStart[0], loopStart[1], Window.red);
+        const neighbours = [
+            [loopStart[0], loopStart[1] - 1],
+            [loopStart[0], loopStart[1] + 1],
+            [loopStart[0] - 1, loopStart[1]],
+            [loopStart[0] + 1, loopStart[1]],
+        ].filter((x) => {
+            return !W.getKey(x[0], x[1], 'isLoop') && W.getKey(x[0], x[1], 'wall');
+        });
+        if (neighbours.length === 0) break;
+        loopStart = neighbours[0];
+
+        floodAnim++;
+        if (floodAnim % floodAnimSpeed === 0) {
+            await new Promise(resolve => setTimeout(resolve, 1));
+        }
+    }
+
+    const floorPieces = W.filter((x) => {
+        return x.floor || (x.pipe && !x.isLoop);
+    });
+
+    const testFloor = async (fillStart) => {
+        const alreadyVisited = W.getKey(fillStart[0], fillStart[1], 'isContained');
+        if (alreadyVisited !== undefined) {
+            return alreadyVisited;
+        }
+
+        let touchedLoop = false;
+        let touchedSideOfMap = false;
+        const floors = [
+            fillStart,
+        ];
+        await W.floodFill(fillStart[0], fillStart[1], (cell) => {
+            if (cell.isLoop) touchedLoop = true;
+            return !cell.isLoop && !cell.visited;
+        }, async ({x, y, floor, pipe}) => {
+            W.setPixel(x, y, Window.pink);
+            W.setKey(x, y, 'visited', true);
+            if (floor || pipe) {
+                floors.push([x, y]);
+            }
+            if (x === 0 || y === 0 || x === W.width - 1 || y === W.height - 1) {
+                touchedSideOfMap = true;
+            }
+
+        
+            floodAnim++;
+            if (floodAnim % floodAnimSpeed === 0) {
+                await new Promise(resolve => setTimeout(resolve, 1));
+            }
+        });
+
+        const isContained = touchedLoop && !touchedSideOfMap;
+        floors.forEach(([x, y]) => {
+            W.setKey(x, y, 'isContained', isContained);
+            W.setPixel(x, y, isContained ? Window.yellow : Window.violet);
+        });
+
+        return isContained;
+    };
+    
+    const containedFloor = [];
+    for(const floor of floorPieces) {
+        const res = await testFloor([floor.x, floor.y]);
+        if (res) {
+            containedFloor.push(floor);
+        }
+    }
+
+    // I misread the question, now use our new found knowledge to find all floors and pipes inside the loop
+    await W.floodFill(containedFloor[0].x, containedFloor[0].y, (cell) => {
+        return !cell.isLoop;
+    }, async ({x, y, floor, pipe}) => {
+        if (floor || pipe) {
+            W.setPixel(x, y, Window.yellow);
+        } else {
+            W.setPixel(x, y, Window.black);
+        }
+        
+        floodAnim++;
+        if (floodAnim % floodAnimSpeed === 0) {
+            await new Promise(resolve => setTimeout(resolve, 1));
+        }
+    });
+
+    const ans2 = containedFloor.length;
+
+    await Advent.Submit(ans2, 2);
 }
 Run();
