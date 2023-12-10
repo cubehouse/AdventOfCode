@@ -8,3 +8,4 @@ c++/Release
 imgui.ini
 frames/
 *.mp4
+bin/ff*
