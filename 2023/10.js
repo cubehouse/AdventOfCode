@@ -28,14 +28,14 @@ async function Run() {
     const width = input[0].length;
     const height = input.length;
     
-    const W = new Window({ width: (width * 2) + 1, height: (height * 2) + 1 });
+    const W = new Window({ width: (width * 3) + 1, height: (height * 3) + 1 });
 
     let start = null;
 
     const coorToWindow = (coor) => {
         return [
-            (coor[0] * 2) + 1,
-            (coor[1] * 2) + 1,
+            (coor[0] * 3) + 1,
+            (coor[1] * 3) + 1,
         ]
     };
 
@@ -44,10 +44,13 @@ async function Run() {
             const windowCoor = coorToWindow([x, y]);
             if (char === 'S') {
                 W.setPixel(windowCoor[0], windowCoor[1], Window.green);
+                W.setKey(windowCoor[0], windowCoor[1], 'pipe', true);
+                W.setKey(windowCoor[0], windowCoor[1], 'wall', true);
                 start = [x, y];
             } else if (char !== '.') {
                 W.setPixel(windowCoor[0], windowCoor[1], Window.blue);
                 W.setKey(windowCoor[0], windowCoor[1], 'pipe', true);
+                W.setKey(windowCoor[0], windowCoor[1], 'wall', true);
                 W.setKey(windowCoor[0], windowCoor[1], 'pipeType', pipeSymbols[char]);
             }
         });
@@ -164,6 +167,51 @@ async function Run() {
         });
     };
 
+    // add pixels between pipes where they connect on the grid
+    W.forEach(({ x, y }) => {
+        const gridX = Math.floor(x / 3);
+        const gridY = Math.floor(y / 3);
+
+        const connectedCells = getConnectedAdjacentCells(gridX, gridY);
+
+        // draw pixels between connected cells
+        connectedCells.forEach(([x2, y2]) => {
+            const windowCoor = coorToWindow([x2, y2]);
+            const pipeType = W.getKey(windowCoor[0], windowCoor[1], 'pipeType');
+            if (pipeType === pipes.PIPE_UPDOWN) {
+                W.setPixel(windowCoor[0], windowCoor[1] - 1, Window.blue);
+                W.setPixel(windowCoor[0], windowCoor[1] + 1, Window.blue);
+                W.setKey(windowCoor[0], windowCoor[1] - 1, 'wall', true);
+                W.setKey(windowCoor[0], windowCoor[1] + 1, 'wall', true);
+            } else if (pipeType === pipes.PIPE_LEFTRIGHT) {
+                W.setPixel(windowCoor[0] - 1, windowCoor[1], Window.blue);
+                W.setPixel(windowCoor[0] + 1, windowCoor[1], Window.blue);
+                W.setKey(windowCoor[0] - 1, windowCoor[1], 'wall', true);
+                W.setKey(windowCoor[0] + 1, windowCoor[1], 'wall', true);
+            } else if (pipeType === pipes.PIPE_UPLEFT) {
+                W.setPixel(windowCoor[0], windowCoor[1] - 1, Window.blue);
+                W.setPixel(windowCoor[0] - 1, windowCoor[1], Window.blue);
+                W.setKey(windowCoor[0], windowCoor[1] - 1, 'wall', true);
+                W.setKey(windowCoor[0] - 1, windowCoor[1], 'wall', true);
+            } else if (pipeType === pipes.PIPE_UPRIGHT) {
+                W.setPixel(windowCoor[0], windowCoor[1] - 1, Window.blue);
+                W.setPixel(windowCoor[0] + 1, windowCoor[1], Window.blue);
+                W.setKey(windowCoor[0], windowCoor[1] - 1, 'wall', true);
+                W.setKey(windowCoor[0] + 1, windowCoor[1], 'wall', true);
+            } else if (pipeType === pipes.PIPE_DOWNLEFT) {
+                W.setPixel(windowCoor[0], windowCoor[1] + 1, Window.blue);
+                W.setPixel(windowCoor[0] - 1, windowCoor[1], Window.blue);
+                W.setKey(windowCoor[0], windowCoor[1] + 1, 'wall', true);
+                W.setKey(windowCoor[0] - 1, windowCoor[1], 'wall', true);
+            } else if (pipeType === pipes.PIPE_DOWNRIGHT) {
+                W.setPixel(windowCoor[0], windowCoor[1] + 1, Window.blue);
+                W.setPixel(windowCoor[0] + 1, windowCoor[1], Window.blue);
+                W.setKey(windowCoor[0], windowCoor[1] + 1, 'wall', true);
+                W.setKey(windowCoor[0] + 1, windowCoor[1], 'wall', true);
+            }
+        });
+    });
+
     const queue = [
         {
             pos: start,
@@ -184,6 +232,23 @@ async function Run() {
 
         W.setKey(posCoor[0], posCoor[1], 'depth', moves.length);
         W.setPixel(posCoor[0], posCoor[1], Window.red);
+
+        // draw pixels between last move and this move
+        if (moves.length > 0) {
+            const lastMove = moves[moves.length - 1];
+            const lastMoveCoor = coorToWindow(lastMove.pos);
+            // fill in all pixels between lastMoveCoor and posCoor
+            const xDiff = posCoor[0] - lastMoveCoor[0];
+            const yDiff = posCoor[1] - lastMoveCoor[1];
+            const xDir = xDiff === 0 ? 0 : xDiff / Math.abs(xDiff);
+            const yDir = yDiff === 0 ? 0 : yDiff / Math.abs(yDiff);
+            for (let x = lastMoveCoor[0]; x !== posCoor[0]; x += xDir) {
+                W.setPixel(x, posCoor[1], Window.red);
+            }
+            for (let y = lastMoveCoor[1]; y !== posCoor[1]; y += yDir) {
+                W.setPixel(posCoor[0], y, Window.red);
+            }
+        }
 
         const connectedCells = getConnectedAdjacentCells(pos[0], pos[1]);
         connectedCells.forEach(([x, y]) => {
