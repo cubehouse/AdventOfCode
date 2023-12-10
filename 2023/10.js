@@ -28,20 +28,27 @@ async function Run() {
     const width = input[0].length;
     const height = input.length;
     
-    const W = new Window({ width, height });
+    const W = new Window({ width: (width * 2) + 1, height: (height * 2) + 1 });
 
     let start = null;
 
+    const coorToWindow = (coor) => {
+        return [
+            (coor[0] * 2) + 1,
+            (coor[1] * 2) + 1,
+        ]
+    };
+
     input.forEach((line, y) => {
         line.split('').forEach((char, x) => {
+            const windowCoor = coorToWindow([x, y]);
             if (char === 'S') {
-                W.setPixel(x, y, Window.green);
-                W.setKey(x, y, 'start', true);
+                W.setPixel(windowCoor[0], windowCoor[1], Window.green);
                 start = [x, y];
             } else if (char !== '.') {
-                W.setPixel(x, y, Window.blue);
-                W.setKey(x, y, 'pipe', true);
-                W.setKey(x, y, 'pipeType', pipeSymbols[char]);
+                W.setPixel(windowCoor[0], windowCoor[1], Window.blue);
+                W.setKey(windowCoor[0], windowCoor[1], 'pipe', true);
+                W.setKey(windowCoor[0], windowCoor[1], 'pipeType', pipeSymbols[char]);
             }
         });
     });
@@ -88,7 +95,8 @@ async function Run() {
     }
 
     const getAdjacentCells = (x, y) => {
-        const pipeType = W.getKey(x, y, 'pipeType');
+        const windowCoor = coorToWindow([x, y]);
+        const pipeType = W.getKey(windowCoor[0], windowCoor[1], 'pipeType');
         const result = [];
         switch (pipeType) {
             case pipes.PIPE_UPDOWN:
@@ -127,7 +135,8 @@ async function Run() {
         { dir: 'left', pos: move(start[0], start[1], 'left') },
         { dir: 'right', pos: move(start[0], start[1], 'right') },
     ].filter(({ pos }) => {
-        const pipeType = W.getKey(pos[0], pos[1], 'pipeType');
+        const windowCoor = coorToWindow(pos);
+        const pipeType = W.getKey(windowCoor[0], windowCoor[1], 'pipeType');
         return pipeType !== undefined;
     }).filter(({ pos }) => {
         // get adjacent cells, if start is not in the list, then it doesn't connect back to start
@@ -139,13 +148,15 @@ async function Run() {
         throw new Error('Invalid start pipe');
     }
     const startPipeType = moveSetToPipeType(startMoves.map(({ dir }) => dir));
-    W.setKey(start[0], start[1], 'pipeType', startPipeType);
+    const startWindowCoor = coorToWindow(start);
+    W.setKey(startWindowCoor[0], startWindowCoor[1], 'pipeType', startPipeType);
 
     const getConnectedAdjacentCells = (x, y) => {
         const cells = getAdjacentCells(x, y);
         // check each cell for a pipe type in the opposite direction
         return cells.filter(([x2, y2]) => {
-            const pipeType = W.getKey(x2, y2, 'pipeType');
+            const windowCoor = coorToWindow([x2, y2]);
+            const pipeType = W.getKey(windowCoor[0], windowCoor[1], 'pipeType');
             if (pipeType === undefined) return false;
 
             const connectedCells = getAdjacentCells(x2, y2);
@@ -166,12 +177,13 @@ async function Run() {
         const key = `${pos[0]},${pos[1]}`;
         if (visited[key]) continue;
         visited[key] = true;
-
-        const pipeType = W.getKey(pos[0], pos[1], 'pipeType');
+    
+        const posCoor = coorToWindow(pos);
+        const pipeType = W.getKey(posCoor[0], posCoor[1], 'pipeType');
         if (pipeType === undefined) continue;
 
-        W.setKey(pos[0], pos[1], 'depth', moves.length);
-        W.setPixel(pos[0], pos[1], Window.red);
+        W.setKey(posCoor[0], posCoor[1], 'depth', moves.length);
+        W.setPixel(posCoor[0], posCoor[1], Window.red);
 
         const connectedCells = getConnectedAdjacentCells(pos[0], pos[1]);
         connectedCells.forEach(([x, y]) => {
@@ -190,7 +202,7 @@ async function Run() {
 
     // find max depth in the maze
     const ans1 = W.reduce((acc, cell) => {
-        if (cell.depth === undefined) return acc;
+        if (cell.depth === undefined || !cell.pipe) return acc;
         return Math.max(acc, cell.depth);
     }, 0);
 
