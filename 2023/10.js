@@ -31,7 +31,7 @@ async function Run() {
     const W = new Window({
         width: (width * 3) + 1,
         height: (height * 3) + 1,
-        pixelSize: 1,
+        //pixelSize: 1,
     });
 
     let start = null;
@@ -250,7 +250,7 @@ async function Run() {
 
         // let the window animate (pause for one "step" every 100 iterations)
         animCounter++;
-        if (animCounter % 400 === 0)
+        if (animCounter % 100 === 0)
         {
             await new Promise(resolve => setTimeout(resolve, 1));
         }
@@ -267,7 +267,7 @@ async function Run() {
     await Advent.Submit(ans1);
     
     let floodAnim = 0;
-    const floodAnimSpeed = 100;
+    const floodAnimSpeed = 50;
 
     // mark all cells that are part of the loop as isLoop
     let loopStart = coorToWindow(start);
@@ -362,5 +362,10 @@ async function Run() {
     const ans2 = containedFloor.length;
 
     await Advent.Submit(ans2, 2);
+
+    // wait 3 seconds before stopping the renderer
+    await new Promise(resolve => setTimeout(resolve, 3000));
+
+    W.stop();
 }
 Run();
