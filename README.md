@@ -10,6 +10,13 @@ Create file `.env`, adding in your AdventOfCode session token.
 
 Example format is available in .env.sample
 
+## Dependencies
+
+You will need GTK (cairo) installed to run the window library.
+https://github.com/Automattic/node-canvas/wiki/Installation:-Windows
+
+Run `npm install` to install dependencies.
+
 ## Usage
 
 Run day scripts using `node 2021/01.js` (for example).
