@@ -29,7 +29,9 @@ const move = (x, y, dir, distance = 1) => {
 }
 
 const run = async () => {
-    const W = new Window({ width: 99, height: 99 });
+    const W = new Window({
+        size: 800,
+    });
 
     const buildMaze = async ({ width, height }) => {
         const makeWall = ({ x, y }) => {
@@ -115,7 +117,7 @@ const run = async () => {
     };
 
     const buildAndSolveMaze = async () => {
-        await buildMaze({ width: W.width, height: W.height });
+        await buildMaze({ width: 99, height: 99 });
 
         const route = await astar(W, 1, 1, W.width - 2, W.height - 2, (cell) => !cell.wall);
         let idx = 0;
