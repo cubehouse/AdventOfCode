@@ -28,6 +28,12 @@ async function Run() {
     }, 0);
 
     await Advent.Submit(ans1);
-    // await Advent.Submit(null, 2);
+
+    const ans2 = pairs.reduce((acc, [left, right]) => {
+        const numCount = rightList.filter((x) => x === left).length;
+        return acc + left * numCount;
+    }, 0);
+
+    await Advent.Submit(ans2, 2);
 }
 Run();
