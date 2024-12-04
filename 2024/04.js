@@ -3,6 +3,14 @@ const Advent = new AdventLib(4, 2024);
 
 import Screen from '../lib/screen.js';
 
+let animCounter = 0;
+const animSpeed = 100;
+const delay = async () => {
+    animCounter++;
+    if (animCounter % animSpeed === 0) {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+    }
+}
 
 async function Run() {
     const input = await Advent.GetInput(`.M.S......
@@ -29,6 +37,8 @@ M.M.M.M.M.
         if (S.Get(x, y) !== word[0]) {
             return false;
         }
+
+        S.FitPositionOntoScreen(x, y, 5);
 
         // trace in all directions
         const directions = [
@@ -74,14 +84,14 @@ M.M.M.M.M.
         }
 
         // animation
-        //await new Promise((resolve) => setTimeout(resolve, 0));
+        await delay();
 
         return wordsFound;
     };
 
     let totalWordsFound = 0;
-    for (let y = 0; y < S.height; y++) {
-        for (let x = 0; x < S.width; x++) {
+    for (let y = S.minY; y <= S.maxY; y++) {
+        for (let x = S.minX; x <= S.maxX; x++) {
             totalWordsFound += await searchForWord(x, y, 'XMAS');
         }
     }
@@ -119,6 +129,8 @@ M.M.M.M.M.
             return false;
         }
 
+        S.FitPositionOntoScreen(x, y, 5);
+
         const masCount = diagonals.reduce((acc, diagonal) => {
             const diag1 = S.Get(x + diagonal[0][0], y + diagonal[0][1]);
             const diag2 = S.Get(x + diagonal[1][0], y + diagonal[1][1]);
@@ -140,10 +152,11 @@ M.M.M.M.M.
     };
 
     let xMasCount = 0;
-    for (let y = 0; y < S.height; y++) {
-        for (let x = 0; x < S.width; x++) {
+    for (let y = S.minY; y <= S.maxY; y++) {
+        for (let x = S.minX; x <= S.maxX; x++) {
             if (searchXMas(x, y)) {
                 xMasCount++;
+                await delay();
             }
         }
     }
