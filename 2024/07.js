@@ -64,6 +64,19 @@ async function Run() {
     Advent.Assert(ans1, 3749);
 
     await Advent.Submit(ans1);
-    // await Advent.Submit(null, 2);
+
+    const p2Ops = [
+        (a, b) => a + b,
+        (a, b) => a * b,
+        (a, b) => Number(`${a}${b}`),
+    ];
+    const ans2 = equations.reduce((acc, [target, values]) => {
+        if (runTest(target, values, p2Ops) > 0) {
+            return acc + target;
+        }
+        return acc;
+    }, 0);
+    Advent.Assert(ans2, 11387);
+    await Advent.Submit(ans2, 2);
 }
 Run();
