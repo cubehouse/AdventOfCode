@@ -17,6 +17,8 @@ async function Run() {
         });
     }
 
+    const blocksCopy = JSON.parse(JSON.stringify(blocks));
+
     let blockIndexWithFreeSpace = 0;
     const findBlockIndexWithFreeSpace = () => {
         if (blockIndexWithFreeSpace >= blocks.length) {
@@ -69,16 +71,13 @@ async function Run() {
 
     const debugPrint = () => {
         if (false) {
-            console.log(blocks.map(b => {
+            console.log(blocksCopy.map(b => {
                 return `${`${b.id}`.repeat(b.size)}${'.'.repeat(b.freeSpace)}`;
             }).join(''));
         }
     };
 
-    debugPrint();
-    while (findFreeBlock()) {
-        debugPrint();
-    }
+    while (findFreeBlock()) {}
 
     const ans1 = blocks.reduce((acc, block) => {
         for (let blockPos = acc.pos; blockPos < acc.pos + block.size; blockPos++) {
@@ -92,8 +91,58 @@ async function Run() {
         total: 0,
     }).total;
     Advent.Assert(ans1, 1928);
-
     await Advent.Submit(ans1);
-    // await Advent.Submit(null, 2);
+
+    // part 2
+    const blockIds = blocksCopy.map(b => b.id);
+
+    const findBlockIndex = (id) => {
+        return blocksCopy.findIndex(b => b.id === id);
+    };
+
+    const findBlockIndexWithSpace = (spaceRequired) => {
+        return blocksCopy.findIndex(b => b.freeSpace >= spaceRequired);
+    };
+
+    debugPrint();
+    for (let blockId = blockIds[blockIds.length - 1]; blockId >= 0; blockId--) {
+        // find block index we want to move
+        const blockIndex = findBlockIndex(blockId);
+        
+        // find block index with space
+        const spaceIndex = findBlockIndexWithSpace(blocksCopy[blockIndex].size);
+        if (spaceIndex === -1 || spaceIndex >= blockIndex) {
+            // no space, skip
+            continue;
+        }
+
+        // move block
+        const blockToMove = blocksCopy[blockIndex];
+
+        // adjust free space
+        blocksCopy[blockIndex - 1].freeSpace += blockToMove.size + blockToMove.freeSpace;
+        blockToMove.freeSpace += blocksCopy[spaceIndex].freeSpace - blockToMove.size - blockToMove.freeSpace;
+
+        blocksCopy.splice(blockIndex, 1);
+        blocksCopy.splice(spaceIndex + 1, 0, blockToMove);
+
+        blocksCopy[spaceIndex].freeSpace = 0;
+
+        debugPrint();
+    }
+
+    const ans2 = blocksCopy.reduce((acc, block) => {
+        for (let blockPos = acc.pos; blockPos < acc.pos + block.size; blockPos++) {
+            acc.total += block.id * blockPos;
+        }
+        acc.pos += block.size + block.freeSpace;
+
+        return acc;
+    }, {
+        pos: 0,
+        total: 0,
+    }).total;
+    Advent.Assert(ans2, 2858);
+    await Advent.Submit(ans2, 2);
 }
 Run();
