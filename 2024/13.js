@@ -68,7 +68,38 @@ Prize: X=18641, Y=10279`);
     Advent.Assert(ans1, 480);
     await Advent.Submit(ans1);
 
-    
-    // await Advent.Submit(null, 2);
+    // Part 2
+    const validCombos2 = [];
+    machines.forEach((machine) => {
+        machine.prize.x += 10000000000000;
+        machine.prize.y += 10000000000000;
+        
+        // damn linear algebra :|
+        const a = machine.a.x;
+        const b = machine.b.x;
+        const c = machine.a.y;
+        const d = machine.b.y;
+        const e = machine.prize.x;
+        const f = machine.prize.y;
+
+        const det = (a * d) - (b * c);
+        if (det !== 0) {
+            const x = ((d * e) - (b * f)) / det;
+            const y = ((a * f) - (c * e)) / det;
+
+            // make sure it's a valid combo (i.e. x and y are both integers and >= 0)
+            if (Number.isInteger(x) && Number.isInteger(y) && x >= 0 && y >= 0) {
+                validCombos2.push({
+                    x,
+                    y,
+                    cost: (x * 3) + y,
+                });
+            }
+        }
+    });
+    const ans2 = validCombos2.reduce((acc, p) => {
+        return acc + p.cost;
+    }, 0);
+    await Advent.Submit(ans2, 2);
 }
 Run();
