@@ -107,6 +107,37 @@ p=9,5 v=-3,-3`);
     const ans1 = quads.reduce((acc, p) => acc * p, 1);
     Advent.Assert(ans1, 12);
     await Advent.Submit(ans1);
-    // await Advent.Submit(null, 2);
+
+    let seconds = 100;
+    let foundTree = false;
+    while (!foundTree) {
+        ticksBots(1);
+        seconds++;
+
+        // look for a column of at least 10 bots in a vertical line
+        W.forEach((x, y, cell) => {
+            if (cell.bots > 0) {
+                let foundEmptyCell = false;
+                for (let i = 1; i < 10; i++) {
+                    const botCount = W.getKey(x, y + i, 'bots');
+                    if (!botCount || botCount == 0) {
+                        foundEmptyCell = true;
+                        break;
+                    }
+                }
+                if (!foundEmptyCell) {
+                    foundTree = true;
+                }
+            }
+        });
+
+        redraw();
+        await new Promise((resolve) => setTimeout(resolve, 0));
+
+        if (foundTree) {
+            await Advent.Submit(seconds, 2);
+            break;
+        }
+    }
 }
 Run();
