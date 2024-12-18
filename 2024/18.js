@@ -53,17 +53,36 @@ async function Run() {
         await new Promise((resolve) => setTimeout(resolve, 0));
     }
 
-    await W.floodFill(0, 0, (cell) => !cell.block, async (cell, x, y, depth) => {
-        W.setKey(x, y, 'depth', Math.min(W.getKey(x, y, 'depth') || 99999, depth));
-        W.setPixel(x, y, Window.colourLerp(Window.blue, Window.white, depth / 256));
-    });
+    const drawCol = Advent.SampleMode ? 22 : 350;
+    const findPath = async () => {
+        // reset maze
+        W.forEach((x, y) => {
+            W.setKey(x, y, 'depth', undefined);
+        });
+
+        await W.floodFill(0, 0, (cell) => !cell.block, async (cell, x, y, depth) => {
+            W.setKey(x, y, 'depth', Math.min(W.getKey(x, y, 'depth') || 99999, depth));
+            W.setPixel(x, y, Window.colourLerp(Window.blue, Window.white, depth / drawCol));
+        });
+    };
+    await findPath();
 
     const endCell = W.get(gridSize - 1, gridSize - 1);
     const ans1 = endCell.depth;
     Advent.Assert(ans1, 22);
     await Advent.Submit(ans1);
 
-    
-    // await Advent.Submit(null, 2);
+    let idx = blocksToFall;
+    while (endCell.depth !== undefined) {
+        idx++;
+        const block = blocks[idx];
+        W.setPixel(block.x, block.y, Window.orange);
+        W.setKey(block.x, block.y, 'block', true);
+        await findPath();
+        await new Promise((resolve) => setTimeout(resolve, 0));
+    }
+
+    const ans2 = `${blocks[idx].x},${blocks[idx].y}`;
+    await Advent.Submit(ans2, 2);
 }
 Run();
