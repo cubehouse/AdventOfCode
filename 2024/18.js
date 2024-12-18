@@ -53,11 +53,14 @@ async function Run() {
         await new Promise((resolve) => setTimeout(resolve, 0));
     }
 
-    const drawCol = Advent.SampleMode ? 22 : 350;
+    const drawCol = Advent.SampleMode ? 22 : 1024;
     const findPath = async () => {
         // reset maze
         W.forEach((x, y) => {
             W.setKey(x, y, 'depth', undefined);
+            if (!W.getKey(x, y, 'block')) {
+                W.setPixel(x, y, Window.black);
+            }
         });
 
         await W.floodFill(0, 0, (cell) => !cell.block, async (cell, x, y, depth) => {
@@ -81,6 +84,8 @@ async function Run() {
         await findPath();
         await new Promise((resolve) => setTimeout(resolve, 0));
     }
+
+    W.setPixel(blocks[idx].x, blocks[idx].y, Window.red);
 
     const ans2 = `${blocks[idx].x},${blocks[idx].y}`;
     await Advent.Submit(ans2, 2);
