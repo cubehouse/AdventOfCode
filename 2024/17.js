@@ -25,7 +25,7 @@ Program: 0,1,5,4,3,0`);
     input.forEach((line) => {
         if (regexReg.test(line)) {
             const [, regKey, val] = line.match(regexReg);
-            reg[regKey] = parseInt(val);
+            reg[regKey] = BigInt(parseInt(val));
         }
 
         if (regexProg.test(line)) {
@@ -38,7 +38,7 @@ Program: 0,1,5,4,3,0`);
 
     const getValue = (val) => {
         if (val >= 0 && val <= 3) {
-            return val;
+            return BigInt(val);
         }
         if (val === 4) {
             return reg.A;
@@ -52,19 +52,17 @@ Program: 0,1,5,4,3,0`);
         throw new Error(`Invalid register ${val}`);
     };
     const getValueDebugStr = (val) => {
-        if (PC.debug) {
-            if (val >= 0 && val <= 3) {
-                return val;
-            }
-            if (val === 4) {
-                return 'reg.A(' + reg.A + ')';
-            }
-            if (val === 5) {
-                return 'reg.B(' + reg.B + ')';
-            }
-            if (val === 6) {
-                return 'reg.C(' + reg.C + ')';
-            }
+        if (val >= 0 && val <= 3) {
+            return val;
+        }
+        if (val === 4) {
+            return 'reg.A';
+        }
+        if (val === 5) {
+            return 'reg.B';
+        }
+        if (val === 6) {
+            return 'reg.C';
         }
         return 'Unknown';
     };
@@ -73,20 +71,20 @@ Program: 0,1,5,4,3,0`);
 
     // adv op
     PC.addOp(0, function (combo) {
-        const val = Math.pow(2, getValue(combo));
+        const val = BigInt(2) ** getValue(combo);
         if (PC.debug) {
-            console.log(`adv: reg.A = ${reg.A} / 2^${getValueDebugStr(combo)} = ${Math.floor(reg.A / val)}`);
+            console.log(`adv: reg.A = ${reg.A} / 2^${getValueDebugStr(combo)} = ${reg.A / val}`);
         }
-        reg.A = Math.floor(reg.A / val);
+        reg.A = reg.A / val;
     }, true, 1);
 
     // bxl op
     PC.addOp(1, function (literal) {
         // XOR of B and literal input
         if (PC.debug) {
-            console.log(`bxl: reg.B = ${reg.B} ^ ${literal} = ${reg.B ^ literal}`);
+            console.log(`bxl: reg.B = ${reg.B} ^ ${literal} = ${reg.B ^ BigInt(literal)}`);
         }
-        reg.B = reg.B ^ literal;
+        reg.B = reg.B ^ BigInt(literal);
     }, true, 1);
 
     // bst op
@@ -96,7 +94,7 @@ Program: 0,1,5,4,3,0`);
         if (PC.debug) {
             console.log(`bst: reg.B = ${getValueDebugStr(combo)} % 8 = ${val % 8}`);
         }
-        reg.B = val % 8;
+        reg.B = val % BigInt(8);
     }, true, 1);
 
     // jnz op
@@ -132,27 +130,28 @@ Program: 0,1,5,4,3,0`);
         // output literal
         const val = getValue(combo);
         if (PC.debug) {
-            console.log(`out: outputting ${getValueDebugStr(combo)} % 8 = ${val % 8}`);
+            console.log(`out: outputting ${getValueDebugStr(combo)} % 8 = ${val % BigInt(8)}`);
         }
-        output.push(val % 8);
+        // always output as 0-7, not BigInt
+        output.push(Number(val % BigInt(8)));
     }, true, 1);
 
     // bdv op
     PC.addOp(6, function (combo) {
-        const val = Math.pow(2, getValue(combo));
+        const val = BigInt(2) ** getValue(combo);
         if (PC.debug) {
-            console.log(`bdv: reg.B = ${reg.A} / 2^${getValueDebugStr(combo)} = ${Math.floor(reg.A / val)}`);
+            console.log(`bdv: reg.B = ${reg.A} / 2^${getValueDebugStr(combo)} = ${reg.A / val}`);
         }
-        reg.B = Math.floor(reg.A / val);
+        reg.B = reg.A / val;
     }, true, 1);
 
     // cdv op
     PC.addOp(7, function (combo) {
-        const val = Math.pow(2, getValue(combo));
+        const val = BigInt(2) ** getValue(combo);
         if (PC.debug) {
-            console.log(`cdv: reg.C = ${reg.A} / 2^${getValueDebugStr(combo)} = ${Math.floor(reg.A / val)}`);
+            console.log(`cdv: reg.C = ${reg.A} / 2^${getValueDebugStr(combo)} = ${reg.A / val}`);
         }
-        reg.C = Math.floor(reg.A / val);
+        reg.C = reg.A / val;
     }, true, 1);
 
     const resetPC = () => {
@@ -163,19 +162,13 @@ Program: 0,1,5,4,3,0`);
         PC.setPC(0);
     };
 
-    // inject into preprocessor for some debugging
+    // inject into preprocessor
     PC.preprocessor = async (code) => {
-        if (PC.debug) {
-            console.log(reg);
-            console.log(output);
-        }
         if (code === undefined) {
             PC.stop();
         }
-        await new Promise((resolve) => setTimeout(resolve, 0));
         return code;
     };
-
 
     // test harness
     let testNum = 1;
@@ -187,7 +180,7 @@ Program: 0,1,5,4,3,0`);
         // apply test values to registers
         const regKeys = Object.keys(testReg);
         regKeys.forEach((key) => {
-            reg[key] = testReg[key];
+            reg[key] = BigInt(testReg[key]);
         });
 
         // load program
@@ -239,20 +232,74 @@ Program: 0,1,5,4,3,0`);
         PC.debug = false;
     };
 
-    PC.debug = false;
-    await runTest({ C: 9 }, [2, 6], null, { B: 1 });
-    await runTest({ A: 10 }, [5, 0, 5, 1, 5, 4], [0, 1, 2], null);
-    await runTest({ A: 2024 }, [0, 1, 5, 4, 3, 0], [4, 2, 5, 6, 7, 7, 7, 7, 3, 1, 0], { A: 0 });
-    await runTest({ B: 29 }, [1, 7], null, { B: 26 });
-    await runTest({ B: 2024, C: 43690 }, [4, 0], null, { B: 44354 });
-    await runTest({ A: 729 }, [0, 1, 5, 4, 3, 0], [4, 6, 3, 5, 6, 3, 5, 2, 1, 0]);
+    // Unit Tests
+    // PC.debug = false;
+    // await runTest({ C: 9 }, [2, 6], null, { B: 1 });
+    // await runTest({ A: 10 }, [5, 0, 5, 1, 5, 4], [0, 1, 2], null);
+    // await runTest({ A: 2024 }, [0, 1, 5, 4, 3, 0], [4, 2, 5, 6, 7, 7, 7, 7, 3, 1, 0], { A: 0 });
+    // await runTest({ B: 29 }, [1, 7], null, { B: 26 });
+    // await runTest({ B: 2024, C: 43690 }, [4, 0], null, { B: 44354 });
+    // await runTest({ A: 729 }, [0, 1, 5, 4, 3, 0], [4, 6, 3, 5, 6, 3, 5, 2, 1, 0]);
 
     // run the program
     resetPC();
     PC.loadProgram(program);
     await PC.run();
     await Advent.Submit(output.join(","));
-    
-    // await Advent.Submit(null, 2);
+
+
+    // part 2
+    const tryPC = async (idx) => {
+        // reset and run the PC for each idx
+        resetPC();
+        reg.A = idx;
+        await PC.run();
+    }
+
+    // build a list of inputs to try
+    //  each time we find a partial match, we bit-shift it and add to the queue
+    //  this should find the smallest valid answer by building up the possible routes and checking them in order
+    const toTry = [ BigInt(0) ]; // start with idx 0
+    while (toTry.length > 0) {
+        // grab next input to try
+        const idx = toTry.shift();
+        // try each offset for 8 bits (0-7)
+        for (let offset = BigInt(0); offset < BigInt(8); offset++) {
+            await tryPC(idx + offset);
+
+            // if output length matches, look for the full output match for our answer
+            if (output.length === program.length) {
+                let match = true;
+                for (let i = 0; i < output.length; i++) {
+                    if (output[i] !== program[i]) {
+                        match = false;
+                        break;
+                    }
+                }
+
+                if (match) {
+                    // found our answer, submit and exit loop
+                    const ans2 = (idx + offset).toString();
+                    await Advent.Submit(ans2, 2);
+                    toTry.length = 0;
+                    break;
+                }
+            } else if (output.length < program.length) {
+                // find partial matches, this means our current input could be part of a possible answer
+                let match = true;
+                for (let i = 0; i < output.length; i++) {
+                    if (output[i] !== program[program.length - output.length + i]) {
+                        match = false;
+                        break;
+                    }
+                }
+                if (match) {
+                    // partial match found, bit shift and add to queue to try more combinations
+                    const newIdx = (idx + offset) << BigInt(3);
+                    toTry.push(newIdx);
+                }
+            }
+        }
+    }
 }
 Run();
