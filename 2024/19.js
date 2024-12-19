@@ -36,7 +36,7 @@ bbrgwb`);
         if (cache[patternToMatch]) {
             return cache[patternToMatch];
         }
-        
+
         const matchingTowels = [];
         for (const towel of towels) {
             let found = true;
@@ -56,31 +56,48 @@ bbrgwb`);
         return matchingTowels;
     };
 
+    const patternCache = {};
     const testPattern = (pattern) => {
+        const cacheKey = pattern.join('');
+        if (patternCache[cacheKey]) {
+            return patternCache[cacheKey];
+        }
+
         if (pattern.length == 0) {
-            return true;
+            return [true, 1];
         }
 
         const matchingTowelsToStart = findTowelsAtStartOfPattern(pattern);
         if (matchingTowelsToStart.length == 0) {
+            patternCache[cacheKey] = [false, 0];
             // if we have no matching towels, pattern cannot be matched, bail
-            return false;
+            return [false, 0];
         }
 
         // otherwise, recurse with the rest of the pattern
+        let total = 0;
         for (const towel of matchingTowelsToStart) {
             const newPattern = pattern.slice(towel.length);
-            if (testPattern(newPattern)) {
-                return true;
+            const [success, matches] = testPattern(newPattern);
+            if (success) {
+                total += matches;
             }
         }
+        patternCache[cacheKey] = [true, total];
+        return [total > 0, total];
     };
 
+    let ans2 = 0;
     const ans1 = patterns.reduce((acc, pattern) => {
-        return acc + (testPattern(pattern) ? 1 : 0);
+        const [success, matches] = testPattern(pattern);
+        if (success) {
+            ans2 += matches;
+            return acc + 1;
+        }
+        return acc;
     }, 0);
     await Advent.Submit(ans1);
-    
-    // await Advent.Submit(null, 2);
+
+    await Advent.Submit(ans2, 2);
 }
 Run();
