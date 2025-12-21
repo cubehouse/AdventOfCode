@@ -49,6 +49,44 @@ async function Run() {
     console.log('Part 1:', part1Sum);
     await Advent.Submit(part1Sum, 1);
 
+    // part 2
+
+    const cache = {}; // I know how to do this properly, but this is still like, 10 seconds, so that will do.
+    const findLargestNumberInBank = (bank, digits = 2) => {
+        let largestNum = -Infinity;
+        const cackeKey = bank.join(',') + `|${digits}`;
+        if (cache[cackeKey] !== undefined) {
+            return cache[cackeKey];
+        }
+
+        for (let i = 0; i <= bank.length - digits; i++) {
+            const startDigit = bank[i];
+            let numStr = startDigit.toString();
+
+            if (digits > 1) {
+                // reurse with following digits
+                const recurBank = bank.slice(i + 1);
+                const largestNumberFromRemaining = findLargestNumberInBank(recurBank, digits - 1);
+                numStr += largestNumberFromRemaining.toString();
+            }
+
+            const numVal = parseInt(numStr, 10);
+            if (numVal > largestNum) {
+                largestNum = numVal;
+            }
+        }
+        cache[cackeKey] = largestNum;
+        return largestNum;
+    };
+
+    let part2Sum = 0;
+    banks.forEach((bank) => {
+        part2Sum += findLargestNumberInBank(bank, 12);
+    });
+
+    console.log('Part 2:', part2Sum);
+    await Advent.Submit(part2Sum, 2);
+
     // await Advent.Submit(null);
     // await Advent.Submit(null, 2);
 }
