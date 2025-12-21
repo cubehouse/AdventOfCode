@@ -15,8 +15,6 @@ async function Run() {
     });
     const ingredients = input.slice(sepIndex + 1).map(Number);
 
-    console.log('Input:', freshRanges, ingredients);
-
     const isInAnyRange = (num) => {
         return freshRanges.some(({ start, end }) => num >= start && num <= end);
     };
@@ -29,6 +27,29 @@ async function Run() {
     }
 
     await Advent.Submit(count);
-    // await Advent.Submit(null, 2);
+    
+    // part 2
+    // for each range, look for ranges that it overlaps with, then combine them
+    for (let i = 0; i < freshRanges.length; i++) {
+        for (let j = i + 1; j < freshRanges.length; j++) {
+            const rangeA = freshRanges[i];
+            const rangeB = freshRanges[j];
+            if (rangeA.end >= rangeB.start && rangeB.end >= rangeA.start) {
+                // they overlap, combine them
+                const newRange = {
+                    start: Math.min(rangeA.start, rangeB.start),
+                    end: Math.max(rangeA.end, rangeB.end)
+                };
+                freshRanges.splice(i, 1);
+                freshRanges.splice(j - 1, 1);
+                freshRanges.push(newRange);
+                i = -1; // restart outer loop
+                break;
+            }
+        }
+    }
+
+    const part2 = freshRanges.reduce((sum, { start, end }) => sum + (end - start + 1), 0);
+    await Advent.Submit(part2, 2);
 }
 Run();
