@@ -48,7 +48,9 @@ const run = async () => {
     // get year from command line (or just use current year)
     const year = Number(process.argv[2] || new Date().getFullYear());
 
-    for (let i = 1; i <= 25; i++) {
+    const puzzles = year >= 2025 ? 12 : 25;
+
+    for (let i = 1; i <= puzzles; i++) {
         generate_file(i, year);
         generateSampleInput(i, year);
     }
