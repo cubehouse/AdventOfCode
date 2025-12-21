@@ -43,7 +43,31 @@ async function Run() {
     await Advent.Submit(zeroCount, 1);
 
     // == Part 2 ==
+    const processCommandsPart2 = (startPos, cmds, callback) => {
+        let x = startPos;
+        cmds.forEach(({ dir, turns }) => {
+            // sorry, this is too easy to brute force and I'm tired.
+            for(let i = 0; i < turns; i++) {
+                if (dir === 'R') {
+                    x += 1;
+                } else if (dir === 'L') {
+                    x -= 1;
+                }
+                // modulo to keep in range 0-99
+                x = (x + 100) % 100;
+                callback(x);
+            }
+        });
 
-    // await Advent.Submit(null, 2);
+        return zeroCount;
+    };
+
+    zeroCount = 0;
+    processCommandsPart2(50, commands, (x) => {
+        if (x === 0) {
+            zeroCount++;
+        }
+    });
+    await Advent.Submit(zeroCount, 2);
 }
 Run();
