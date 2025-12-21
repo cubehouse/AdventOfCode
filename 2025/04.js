@@ -59,10 +59,33 @@ async function Run() {
     });
     await Advent.Submit(pushableCount, 1);
 
-    // const part2 = 0;
-    // console.log('Part 2:', part2);
+    // part 2
+    const removePaper = () => {
+        const removed = [];
+        W.forEach((x, y) => {
+            if (W.getKey(x, y, 'val') === '@' && canPushPaper(x, y)) {
+                W.setPixel(x, y, Colour.white);
+                removed.push([x, y]);
+            }
+        });
+        return removed;
+    };
 
-    // await Advent.Submit(null);
-    // await Advent.Submit(null, 2);
+    let paperRemoved = 0;
+    while (true) {
+        const removedThisRound = removePaper();
+        if (removedThisRound.length === 0) {
+            break;
+        }
+        paperRemoved += removedThisRound.length;
+        // unset val for removed pixels
+        for (const [x, y] of removedThisRound) {
+            W.setKey(x, y, 'val', '.');
+        }
+        W.render();
+        await new Promise((res) => setTimeout(res, 10));
+    }
+
+    await Advent.Submit(paperRemoved, 2);
 }
 Run();
