@@ -34,10 +34,7 @@ async function Run() {
         }
     };
     const step = () => {
-        // remove any duplicates and create a clone of beams
-        const beamsToProcess = [...beams];/*.filter((beam, index, self) =>
-            index === self.findIndex((b) => b.x === beam.x && b.y === beam.y)
-        );*/
+        const beamsToProcess = [...beams];
         maxBeams = Math.max(maxBeams, beamsToProcess.reduce((sum, b) => sum + b.count, 0));
         beams.length = 0;
 
