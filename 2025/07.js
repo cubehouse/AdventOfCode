@@ -23,11 +23,22 @@ async function Run() {
 
     const beams = [];
     let splits = 0;
+    let maxBeams = 0;
+    const addBeamToProcess = (x, y, existingCount = 1) => {
+        // if already exists, find and add to its count
+        const existingBeam = beams.find((b) => b.x === x && b.y === y);
+        if (existingBeam) {
+            existingBeam.count += existingCount;
+        } else {
+            beams.push({ x, y, count: existingCount });
+        }
+    };
     const step = () => {
         // remove any duplicates and create a clone of beams
-        const beamsToProcess = [...beams].filter((beam, index, self) =>
+        const beamsToProcess = [...beams];/*.filter((beam, index, self) =>
             index === self.findIndex((b) => b.x === beam.x && b.y === beam.y)
-        );
+        );*/
+        maxBeams = Math.max(maxBeams, beamsToProcess.reduce((sum, b) => sum + b.count, 0));
         beams.length = 0;
 
         for (const beam of beamsToProcess) {
@@ -38,12 +49,12 @@ async function Run() {
             if (below) {
                 if (below.val === '.') {
                     // empty space! create a new beam there
-                    beams.push({ x, y: y + 1 });
+                    addBeamToProcess(x, y + 1, beam.count);
                     W.setPixel(x, y, Colour.green);
                 } else if (below.val === '^') {
                     // create two beams
-                    beams.push({ x: x - 1, y: y + 1 });
-                    beams.push({ x: x + 1, y: y + 1 });
+                    addBeamToProcess(x - 1, y + 1, beam.count);
+                    addBeamToProcess(x + 1, y + 1, beam.count);
                     W.setPixel(x, y, Colour.green);
                     splits++;
                 }
@@ -57,16 +68,17 @@ async function Run() {
     const startCell = W.find((x, y, cell) => {
         return cell.val === 'S';
     });
-    beams.push({ x: startCell.x, y: startCell.y + 1 });
+    addBeamToProcess(startCell.x, startCell.y + 1);
 
     while (beams.length > 0) {
         step();
-        await W.delay(5);
+        await W.delay(0);
     }
 
+    Advent.Assert(splits, 21);
     await Advent.Submit(splits);
 
 
-    // await Advent.Submit(null, 2);
+    await Advent.Submit(maxBeams, 2);
 }
 Run();
