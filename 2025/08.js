@@ -83,10 +83,26 @@ async function Run() {
         return acc;
     }, []);
     circuits.sort((a, b) => b.length - a.length);
-    
+
     const part1 = circuits.slice(0, 3).reduce((acc, circuit) => acc * circuit.length, 1);
     await Advent.Submit(part1);
-    
-    // await Advent.Submit(null, 2);
+
+    // part 2
+    for (let nodeidx = nearestDistances; nodeidx < distance_sorted_map.length; nodeidx++) {
+        const distanceEntry = distance_sorted_map[nodeidx];
+        const nodeA = nodes[distanceEntry.nodeA];
+        const nodeB = nodes[distanceEntry.nodeB];
+        connectNodes(nodeA, nodeB);
+
+        // check if we have one circuit
+        const uniqueCircuits = new Set(nodes.map(n => n.circuit));
+        if (uniqueCircuits.size === 1) {
+            // submit
+            const part2 = nodeA.x * nodeB.x;
+            Advent.Assert(part2, 25272);
+            await Advent.Submit(part2, 2);
+            break;
+        }
+    }
 }
 Run();
